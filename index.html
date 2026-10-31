@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Анкета студента — ИВТ-24</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white; color: black; }
+      .shadow-xl, .shadow-md { box-shadow: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen pb-12">
+
+  <!-- МОДАЛЬНОЕ ОКНО: ВХОД И РЕГИСТРАЦИЯ -->
+  <div id="authModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+      <!-- Переключатель Вход / Регистрация -->
+      <div class="flex border-b border-slate-100">
+        <button id="tabLogin" onclick="switchAuthTab('login')" class="flex-1 py-4 text-center font-bold text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50/50 transition">
+          Вход
+        </button>
+        <button id="tabRegister" onclick="switchAuthTab('register')" class="flex-1 py-4 text-center font-bold text-slate-400 hover:text-slate-600 transition">
+          Регистрация
+        </button>
+      </div>
+
+      <div class="p-6">
+        <!-- Форма входа -->
+        <form id="formLogin" onsubmit="handleLogin(event)" class="space-y-4">
+          <div>
+            <label class="text-xs font-bold text-slate-500 uppercase">Логин</label>
+            <input type="text" id="loginUsername" required placeholder="Введите ваш логин" class="w-full mt-1 px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="text-xs font-bold text-slate-500 uppercase">Пароль</label>
+            <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full mt-1 px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-200 transition">
+            Войти в аккаунт
+          </button>
+        </form>
+
+        <!-- Форма регистрации -->
+        <form id="formRegister" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+          <div>
+            <label class="text-xs font-bold text-slate-500 uppercase">ФИО Студента</label>
+            <input type="text" id="regFullName" required placeholder="Дастан Каныметов" class="w-full mt-1 px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="text-xs font-bold text-slate-500 uppercase">Логин</label>
+            <input type="text" id="regUsername" required placeholder="Придумайте логин" class="w-full mt-1 px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="text-xs font-bold text-slate-500 uppercase">Пароль</label>
+            <input type="password" id="regPassword" required placeholder="Придумайте пароль" class="w-full mt-1 px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-200 transition">
+            Создать аккаунт
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ШАПКА САЙТА -->
+  <header class="bg-indigo-700 text-white shadow-lg no-print">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="p-3 bg-indigo-600 rounded-xl">
+          <i class="fa-solid fa-id-card text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold">Анкета студента</h1>
+          <p class="text-indigo-200 text-xs">Группа ИВТ-24 | 5-семестр</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <span id="currentUserLabel" class="text-xs bg-indigo-800 px-3 py-1.5 rounded-lg font-medium text-indigo-100 flex items-center gap-2">
+          <i class="fa-solid fa-user"></i> <span id="userNameDisplay">Гость</span>
+        </span>
+        <button onclick="window.print()" class="bg-white text-indigo-700 hover:bg-indigo-50 px-3 py-1.5 rounded-lg text-sm font-medium shadow transition flex items-center gap-1.5">
+          <i class="fa-solid fa-print"></i> Печать
+        </button>
+        <button onclick="saveData()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow transition flex items-center gap-1.5">
+          <i class="fa-solid fa-floppy-disk"></i> Сохранить
+        </button>
+        <button onclick="logout()" title="Выйти" class="bg-indigo-600 hover:bg-indigo-800 text-white p-2 rounded-lg text-sm transition">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ОСНОВНОЙ КОНТЕНТ АНКЕТЫ -->
+  <main class="max-w-5xl mx-auto px-4 mt-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <!-- Левая колонка -->
+      <div class="space-y-6">
+        
+        <!-- Карточка профиля с поддержкой фото/камеры -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200/80 text-center">
+          <div class="relative w-32 h-32 mx-auto mb-4 group">
+            <img id="avatarImg" src="https://via.placeholder.com/150?text=Фото" alt="Аватар" class="w-32 h-32 rounded-full object-cover border-4 border-indigo-100 shadow">
+            
+            <div class="no-print absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
+              <button onclick="openCamera()" title="Сделать фото с веб-камеры" class="bg-indigo-600 text-white p-2.5 rounded-full hover:bg-indigo-700 shadow">
+                <i class="fa-solid fa-camera"></i>
+              </button>
+              <button onclick="document.getElementById('fileInput').click()" title="Загрузить файл" class="bg-emerald-600 text-white p-2.5 rounded-full hover:bg-emerald-700 shadow">
+                <i class="fa-solid fa-upload"></i>
+              </button>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="uploadImage(event)">
+          </div>
+
+          <input type="text" id="fullName" value="Дастан Каныметов" class="text-xl font-bold text-center w-full border-b border-transparent hover:border-indigo-300 focus:border-indigo-600 outline-none transition py-1">
+          <p class="text-xs text-slate-400 mt-1">Студент 3-курса</p>
+
+          <div class="mt-4 space-y-3 text-left">
+            <div>
+              <label class="text-xs font-semibold text-slate-400 uppercase">Группа</label>
+              <input type="text" id="studentGroup" value="ИВТ-24" class="w-full font-medium text-slate-700 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 mt-1">
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-400 uppercase">Специальность</label>
+              <input type="text" id="specialty" value="ИВТ / ИС и ИТ" class="w-full font-medium text-slate-700 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 mt-1">
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-400 uppercase">№ Студенческого</label>
+              <input type="text" id="studentId" value="2024-IVT-042" class="w-full font-medium text-slate-700 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 mt-1">
+            </div>
+          </div>
+        </div>
+
+        <!-- Контакты -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200/80">
+          <h3 class="font-bold text-slate-700 border-b pb-2 mb-3 flex items-center gap-2 text-sm">
+            <i class="fa-solid fa-address-book text-indigo-600"></i> Контактные данные
+          </h3>
+          <div class="space-y-3">
+            <div>
+              <label class="text-xs text-slate-400">Телефон</label>
+              <input type="text" id="phone" value="+996 700 000 000" class="w-full text-sm border-b focus:border-indigo-600 outline-none py-1">
+            </div>
+            <div>
+              <label class="text-xs text-slate-400">Telegram</label>
+              <input type="text" id="telegram" value="@username" class="w-full text-sm border-b focus:border-indigo-600 outline-none py-1 text-indigo-600">
+            </div>
+            <div>
+              <label class="text-xs text-slate-400">GitHub</label>
+              <input type="text" id="github" value="https://github.com/dastan-eng" class="w-full text-sm border-b focus:border-indigo-600 outline-none py-1 text-indigo-600">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Правая колонка -->
+      <div class="md:col-span-2 space-y-6">
+
+        <!-- О себе & Цели -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200/80">
+          <h3 class="font-bold text-slate-700 border-b pb-2 mb-4 flex items-center gap-2 text-sm">
+            <i class="fa-solid fa-bullseye text-indigo-600"></i> Специализация и Цели
+          </h3>
+          <textarea id="about" rows="3" class="w-full text-sm p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">Изучаю разработку ПО, веб-технологии и мобильные приложения. Занимаюсь веб-разработкой и написанием скриптов на Python.</textarea>
+        </div>
+
+        <!-- Навыки -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200/80">
+          <div class="flex justify-between items-center border-b pb-2 mb-4">
+            <h3 class="font-bold text-slate-700 flex items-center gap-2 text-sm">
+              <i class="fa-solid fa-code text-indigo-600"></i> Навыки & Технологии
+            </h3>
+            <button onclick="addSkill()" class="no-print text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1 rounded-lg font-semibold">
+              + Добавить
+            </button>
+          </div>
+          <div id="skillsList" class="flex flex-wrap gap-2">
+            <span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm border border-slate-200 flex items-center gap-2">
+              Python / Dart <i class="fa-solid fa-xmark text-slate-400 hover:text-red-500 cursor-pointer no-print" onclick="this.parentElement.remove()"></i>
+            </span>
+            <span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm border border-slate-200 flex items-center gap-2">
+              HTML / CSS / JavaScript <i class="fa-solid fa-xmark text-slate-400 hover:text-red-500 cursor-pointer no-print" onclick="this.parentElement.remove()"></i>
+            </span>
+            <span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm border border-slate-200 flex items-center gap-2">
+              Git & GitHub <i class="fa-solid fa-xmark text-slate-400 hover:text-red-500 cursor-pointer no-print" onclick="this.parentElement.remove()"></i>
+            </span>
+          </div>
+        </div>
+
+        <!-- Проекты -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200/80">
+          <h3 class="font-bold text-slate-700 border-b pb-2 mb-4 flex items-center gap-2 text-sm">
+            <i class="fa-solid fa-diagram-project text-indigo-600"></i> Учебные Проекты
+          </h3>
+          <div class="space-y-3">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <div class="flex justify-between items-center">
+                <span class="font-semibold text-slate-800 text-sm">Веб-приложение «Расписание ИВТ-24»</span>
+                <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">Готово</span>
+              </div>
+              <p class="text-xs text-slate-500 mt-1">Интерактивный сайт расписания с фильтрами по предметам и аудиториям.</p>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <div class="flex justify-between items-center">
+                <span class="font-semibold text-slate-800 text-sm">Отчет по практике</span>
+                <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">Завершено</span>
+              </div>
+              <p class="text-xs text-slate-500 mt-1">Производственная практика в банке.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- МОДАЛЬНОЕ ОКНО ВЕБ-КАМЕРЫ -->
+  <div id="cameraModal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 text-center space-y-4">
+      <h3 class="text-lg font-bold text-slate-800">Сделать фото с веб-камеры</h3>
+      <div class="relative bg-black rounded-xl overflow-hidden aspect-square flex items-center justify-center">
+        <video id="video" autoplay playsinline class="w-full h-full object-cover"></video>
+        <canvas id="canvas" class="hidden"></canvas>
+      </div>
+      <div class="flex justify-center gap-3">
+        <button onclick="takePhoto()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium flex items-center gap-2">
+          <i class="fa-solid fa-camera"></i> Снять
+        </button>
+        <button onclick="closeCamera()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-5 py-2.5 rounded-xl font-medium">
+          Отмена
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- СКРИПТЫ ЛОГИКИ -->
+  <script>
+    let currentUser = null;
+    let stream = null;
+
+    // Инициализация при загрузке
+    window.onload = function() {
+      const activeUser = localStorage.getItem('activeUser');
+      if (activeUser) {
+        currentUser = activeUser;
+        document.getElementById('authModal').classList.add('hidden');
+        document.getElementById('userNameDisplay').innerText = currentUser;
+        loadUserData();
+      }
+    };
+
+    function switchAuthTab(tab) {
+      if (tab === 'login') {
+        document.getElementById('tabLogin').className = 'flex-1 py-4 text-center font-bold text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50/50 transition';
+        document.getElementById('tabRegister').className = 'flex-1 py-4 text-center font-bold text-slate-400 hover:text-slate-600 transition';
+        document.getElementById('formLogin').classList.remove('hidden');
+        document.getElementById('formRegister').classList.add('hidden');
+      } else {
+        document.getElementById('tabRegister').className = 'flex-1 py-4 text-center font-bold text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/50 transition';
+        document.getElementById('tabLogin').className = 'flex-1 py-4 text-center font-bold text-slate-400 hover:text-slate-600 transition';
+        document.getElementById('formRegister').classList.remove('hidden');
+        document.getElementById('formLogin').classList.add('hidden');
+      }
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('regFullName').value;
+      const user = document.getElementById('regUsername').value.trim();
+      const pass = document.getElementById('regPassword').value;
+
+      let users = JSON.parse(localStorage.getItem('appUsers') || '{}');
+      if (users[user]) {
+        alert('Пользователь с таким логином уже существует!');
+        return;
+      }
+
+      users[user] = { password: pass, fullName: name };
+      localStorage.setItem('appUsers', JSON.stringify(users));
+      
+      currentUser = user;
+      localStorage.setItem('activeUser', user);
+      document.getElementById('fullName').value = name;
+      document.getElementById('authModal').classList.add('hidden');
+      document.getElementById('userNameDisplay').innerText = user;
+      saveData();
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('loginUsername').value.trim();
+      const pass = document.getElementById('loginPassword').value;
+
+      let users = JSON.parse(localStorage.getItem('appUsers') || '{}');
+      if (users[user] && users[user].password === pass) {
+        currentUser = user;
+        localStorage.setItem('activeUser', user);
+        document.getElementById('authModal').classList.add('hidden');
+        document.getElementById('userNameDisplay').innerText = user;
+        loadUserData();
+      } else {
+        alert('Неверный логин или пароль!');
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('activeUser');
+      location.reload();
+    }
+
+    function saveData() {
+      if (!currentUser) return;
+      const data = {
+        fullName: document.getElementById('fullName').value,
+        studentGroup: document.getElementById('studentGroup').value,
+        specialty: document.getElementById('specialty').value,
+        studentId: document.getElementById('studentId').value,
+        phone: document.getElementById('phone').value,
+        telegram: document.getElementById('telegram').value,
+        github: document.getElementById('github').value,
+        about: document.getElementById('about').value,
+        avatar: document.getElementById('avatarImg').src,
+        skills: document.getElementById('skillsList').innerHTML
+      };
+      localStorage.setItem('userData_' + currentUser, JSON.stringify(data));
+      alert('Данные успешно сохранены!');
+    }
+
+    function loadUserData() {
+      if (!currentUser) return;
+      const saved = localStorage.getItem('userData_' + currentUser);
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.fullName) document.getElementById('fullName').value = data.fullName;
+        if (data.studentGroup) document.getElementById('studentGroup').value = data.studentGroup;
+        if (data.specialty) document.getElementById('specialty').value = data.specialty;
+        if (data.studentId) document.getElementById('studentId').value = data.studentId;
+        if (data.phone) document.getElementById('phone').value = data.phone;
+        if (data.telegram) document.getElementById('telegram').value = data.telegram;
+        if (data.github) document.getElementById('github').value = data.github;
+        if (data.about) document.getElementById('about').value = data.about;
+        if (data.avatar) document.getElementById('avatarImg').src = data.avatar;
+        if (data.skills) document.getElementById('skillsList').innerHTML = data.skills;
+      }
+    }
+
+    // Камера
+    async function openCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        document.getElementById('video').srcObject = stream;
+        document.getElementById('cameraModal').classList.remove('hidden');
+      } catch (err) {
+        alert('Ошибка доступа к камере.');
+      }
+    }
+
+    function closeCamera() {
+      if (stream) stream.getTracks().forEach(track => track.stop());
+      document.getElementById('cameraModal').classList.add('hidden');
+    }
+
+    function takePhoto() {
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      document.getElementById('avatarImg').src = canvas.toDataURL('image/png');
+      closeCamera();
+    }
+
+    function uploadImage(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => document.getElementById('avatarImg').src = event.target.result;
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function addSkill() {
+      const name = prompt("Введите навык:");
+      if (name && name.trim()) {
+        const badge = document.createElement("span");
+        badge.className = "bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm border border-slate-200 flex items-center gap-2";
+        badge.innerHTML = `${name.trim()} <i class="fa-solid fa-xmark text-slate-400 hover:text-red-500 cursor-pointer no-print" onclick="this.parentElement.remove()"></i>`;
+        document.getElementById("skillsList").appendChild(badge);
+      }
+    }
+  </script>
+</body>
+</html>
